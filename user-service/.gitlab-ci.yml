@@ -1,0 +1,51 @@
+#cache:
+#  paths:
+#    - .m2/repository
+
+#默认git runner 的 maven repo.local 在 /home/gitlab-runner/.m2/repository 所以不需缓存 , 因为只有一个 runner , 所有项目共享
+variables:
+#  MAVEN_OPTS: "-Dmaven.repo.local=/home/gitlab-runner/.m2/repository"
+  BUILD_PROJECT_NAME: "framework-user-provider"
+  SENTRY_POJ: "--org losaxa --project framework"
+  #多项模块项目,必须有这个参数,批量处理项目
+  MAVEN_CLI_OPTS: "-B"
+
+stages:
+  - build
+  - test
+
+test:
+  stage: test
+  script:
+    - echo "test......"
+
+build-master:
+#  image: maven:3.8.2-jdk-8S
+  stage: build
+  script:
+    - echo "build start......"
+    - mvn $MAVEN_CLI_OPTS install -DskipTests -P test
+    - cd $BUILD_PROJECT_NAME
+    - mvn clean versions:set -DnewVersion=$CI_COMMIT_SHORT_SHA
+    - mvn package fabric8:build fabric8:push fabric8:resource-apply -DskipTests -P test
+    - mvn versions:revert
+    - echo "build end......"
+  artifacts:
+    paths:
+      - $BUILD_PROJECT_NAME/target/classes/META-INF/fabric8/kubernetes
+  when: manual
+
+    #sentrt release
+#    - >-
+#      curl http://192.168.209.12:9000/api/hooks/release/builtin/2/59acf99361bd306132b1b48483061127051d86af86542e293b035f2e47686245/
+#      -X POST
+#      -H 'Content-Type: application/json'
+#      -d '{"version":"'"$CI_COMMIT_SHA"'","ref":"'"$CI_COMMIT_SHA"'","refs":[{"repository":"framework/formwork","commit":"'"$CI_COMMIT_SHA"'","previousCommit":"'"$CI_COMMIT_BEFORE_SHA"'"}],"projects":["framework"]}'
+  ########################################################################################
+#    - sentry-cli releases $SENTRY_POJ new $CI_COMMIT_SHA
+#    - sentry-cli releases $SENTRY_POJ set-commits $CI_COMMIT_SHA --auto
+#    - sentry-cli releases $SENTRY_POJ finalize "$CI_COMMIT_SHA"
+#    - sentry-cli releases $SENTRY_POJ deploys $CI_COMMIT_SHA new -e prod
+  only:
+    - master
+

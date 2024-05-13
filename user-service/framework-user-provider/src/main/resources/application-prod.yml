@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: framework-user
+  cloud:
+    kubernetes:
+      loadbalancer:
+        #根据 pod ip 轮询负载均衡
+        mode: pod
+  data:
+    mongodb:
+      database: user
+      #&readPreference=secondaryPreferred 事务中不能读从库
+      #&minPoolSize=10&maxPoolSize=10
+      uri: mongodb://${DB_USERNAME}:${DB_PASSWORD}@mongo-0.mongo-svc.mongo.svc.cluster.local:27017,mongo-1.mongo-svc.mongo.svc.cluster.local:27017,mongo-2.mongo-svc.mongo.svc.cluster.local:27017/admin?ssl=true&authSource=admin&w=majority&journal=true&wtimeoutMS=60000&readConcernLevel=majority&readPreference=primary&maxIdleTimeMS=3600000
+
+  redis:
+    database: 0
+    cluster:
+      nodes: server01.com:6379,server02.com:6379,server03.com:6379,server01.com:6380,server02.com:6380,server03.com:6380
+    password: ${REDIS_PASSWORD}
+  elasticsearch:
+    rest:
+      uris: server04.com:9200
+      username: ${ES_USERNAME}
+      password: ${ES_PASSWORD}
+
+security:
+  oauth2:
+    resource:
+      tokenInfoUri: http://framework-auth.@k8s-namespaces@:8910/oauth/check_token
+    client:
+      client-id: localhost
+      client-secret: localhost
+
+server:
+  port: 8920
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh,health,info,restart
+#sentry:
+#  dsn: http://34854421b6824eb1b03a5df6a9db64a5@192.168.209.12:9000/2
+#  environment: prod546ab122c057811b28d4cb62ff5987650c349427
+#  release:
+#  logging:
+#    enabled: true
+#    minimum-breadcrumb-level: info
+#    minimum-event-level: warn

@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: framework-auth
+  cloud:
+    kubernetes:
+      loadbalancer:
+        #根据 pod ip 轮询负载均衡
+        mode: pod
+  data:
+    mongodb:
+      database: auth
+      #&readPreference=secondaryPreferred 事务中不能读从库
+      #&minPoolSize=10&maxPoolSize=10
+      uri: mongodb://vipserver.com:31181,vipserver.com:31182,vipserver.com:31183/?ssl=true&authSource=admin&w=majority&journal=true&wtimeoutMS=60000&readConcernLevel=majority&readPreference=primary&maxIdleTimeMS=3600000
+
+security:
+  oauth2:
+    resource:
+      #从认证授权服务种验证token,由于资源服务和授权服务是同一服务,所以是localhost
+      tokenInfoUri: http://localhost:${server.port}/oauth/check_token
+    client:
+      client-id: localhost
+      client-secret: localhost
+
+server:
+  port: 8910
+
+app:
+  database:
+    autoMatedata: false
+
+#应该管理
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh,health,info,restart
+
+#异常日志收集
+#sentry:
+#  dsn: http://34854421b6824eb1b03a5df6a9db64a5@192.168.209.12:9000/2
+#  environment: prod546ab122c057811b28d4cb62ff5987650c349427
+#  release:
+#  logging:
+#    enabled: true
+#    minimum-breadcrumb-level: info
+#    minimum-event-level: warn

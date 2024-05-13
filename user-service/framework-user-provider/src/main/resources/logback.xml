@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="LOG_PATH" value="logs/framework-user"/>
+    <include resource="com/losaxa/core/web/logger/base.xml"/>
+</configuration>
